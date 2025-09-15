@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,7 +11,8 @@ const Login = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate('/admin');
+        // Redirect to home page after login
+        navigate('/');
       }
     });
 
@@ -23,7 +24,10 @@ const Login = () => {
       <div className="w-full max-w-md px-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Acceso de Administrador</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Accede a tu Cuenta</CardTitle>
+            <CardDescription className="text-center pt-2">
+              O crea una cuenta para guardar tu historial de pedidos.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Auth
@@ -31,6 +35,7 @@ const Login = () => {
               appearance={{ theme: ThemeSupa }}
               providers={[]}
               theme="light"
+              view="sign_in"
               localization={{
                 variables: {
                   sign_in: {
@@ -42,8 +47,8 @@ const Login = () => {
                   sign_up: {
                     email_label: 'Correo electrónico',
                     password_label: 'Contraseña',
-                    button_label: 'Registrarse',
-                    loading_button_label: 'Registrando...',
+                    button_label: 'Crear cuenta',
+                    loading_button_label: 'Creando cuenta...',
                   }
                 }
               }}

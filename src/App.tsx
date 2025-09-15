@@ -13,6 +13,7 @@ import PaymentFailure from "./pages/PaymentFailure";
 import ProductDetail from "./pages/ProductDetail";
 import CollectionPage from "./pages/Collection";
 import SearchPage from "./pages/SearchPage";
+import Profile from "./pages/Profile";
 import { CartProvider } from "@/context/CartContext";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/collection/:name" element={<CollectionPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/failure" element={<PaymentFailure />} />

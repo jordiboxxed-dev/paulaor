@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { showError } from '@/utils/toast';
 import { Loader2 } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 
 // This is a global variable from the Mercado Pago SDK script
 declare const MercadoPago: any;
@@ -18,10 +19,19 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingCost: number = 0;
   const total = subtotal + shippingCost;
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     if (preferenceId) {
@@ -58,6 +68,7 @@ const Checkout = () => {
           customer_email: customerEmail,
           total_price: total,
           status: 'pending',
+          user_id: user?.id, // Link to logged-in user
         })
         .select()
         .single();
@@ -120,11 +131,11 @@ const Checkout = () => {
               <fieldset disabled={isLoading || !!preferenceId}>
                 <div>
                   <Label htmlFor="name">Nombre Completo</Label>
-                  <Input id="name" name="name" type="text" placeholder="Tu nombre" required />
+                  <Input id="name" name="name" type="text" defaultValue={user?.user_metadata?.full_name || ''} placeholder="Tu nombre" required />
                 </div>
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input id="email" name="email" type="email" placeholder="tu@email.com" required />
+                  <Input id="email" name="email" type="email" defaultValue={user?.email || ''} placeholder="tu@email.com" required />
                 </div>
               </fieldset>
             </form>

@@ -1,4 +1,4 @@
-import { Gem } from 'lucide-react';
+import { Gem, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CartSheet } from './CartSheet';
 import {
@@ -14,9 +14,24 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { SearchBar } from './SearchBar';
+import { Session } from '@supabase/supabase-js';
+import { Button } from './ui/button';
 
 const Header = () => {
   const [collections, setCollections] = useState<string[]>([]);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -68,6 +83,17 @@ const Header = () => {
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
+            )}
+            {session ? (
+              <Link to="/profile">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline">Login</Button>
+              </Link>
             )}
             <CartSheet />
           </nav>
