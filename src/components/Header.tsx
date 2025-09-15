@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { SearchBar } from './SearchBar';
 
 const Header = () => {
   const [collections, setCollections] = useState<string[]>([]);
@@ -39,14 +40,19 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="border-b">
+    <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <Gem className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg">Joyería Paula</span>
+            <span className="font-bold text-lg hidden sm:inline-block">Joyería Paula</span>
           </Link>
-          <nav className="flex items-center gap-4">
+          
+          <div className="flex-1 flex justify-center px-4">
+            <SearchBar />
+          </div>
+
+          <nav className="flex items-center gap-2 sm:gap-4">
             {collections.length > 0 && (
               <NavigationMenu>
                 <NavigationMenuList>

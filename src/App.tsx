@@ -11,7 +11,8 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
 import ProductDetail from "./pages/ProductDetail";
-import CollectionPage from "./pages/Collection"; // Import the new page
+import CollectionPage from "./pages/Collection";
+import SearchPage from "./pages/SearchPage";
 import { CartProvider } from "@/context/CartContext";
 
 const queryClient = new QueryClient();
@@ -25,8 +26,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/collection/:name" element={<CollectionPage />} /> {/* Add new route */}
+            <Route path="/collection/:name" element={<CollectionPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/checkout" element={<Checkout />} />
