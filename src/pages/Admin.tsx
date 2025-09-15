@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import ProductForm from '@/components/ProductForm';
 import ProductTable from '@/components/ProductTable';
+import OrdersTable from '@/components/OrdersTable';
+import OrderDetailDialog from '@/components/OrderDetailDialog';
 import { showError, showSuccess } from '@/utils/toast';
-import { Product } from '@/types';
+import { Product, Order } from '@/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,26 +17,45 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  
+  // Products state
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
+  // Orders state
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   const fetchProducts = useCallback(async () => {
-    setLoading(true);
+    setLoadingProducts(true);
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (error) {
       showError('No se pudieron cargar los productos.');
     } else {
       setProducts(data);
     }
-    setLoading(false);
+    setLoadingProducts(false);
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
+    setLoadingOrders(true);
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (error) {
+      showError('No se pudieron cargar los pedidos.');
+    } else {
+      setOrders(data);
+    }
+    setLoadingOrders(false);
   }, []);
 
   useEffect(() => {
@@ -45,19 +66,21 @@ const Admin = () => {
       } else {
         setUser(session.user);
         fetchProducts();
+        fetchOrders();
       }
     };
     checkUser();
-  }, [navigate, fetchProducts]);
+  }, [navigate, fetchProducts, fetchOrders]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
   };
 
-  const handleEdit = (product: Product) => {
+  // Product handlers
+  const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
-    setShowForm(true);
+    setShowProductForm(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -73,8 +96,8 @@ const Admin = () => {
     setDeletingProductId(null);
   };
 
-  const handleFormFinished = () => {
-    setShowForm(false);
+  const handleProductFormFinished = () => {
+    setShowProductForm(false);
     setEditingProduct(null);
     fetchProducts();
     showSuccess(`Producto ${editingProduct ? 'actualizado' : 'añadido'} con éxito.`);
@@ -93,18 +116,33 @@ const Admin = () => {
       </header>
       
       <main>
-        {showForm ? (
-          <ProductForm product={editingProduct} onFinished={handleFormFinished} />
-        ) : (
-          <>
-            <div className="flex justify-end mb-4">
-              <Button onClick={() => { setEditingProduct(null); setShowForm(true); }}>Añadir Joya</Button>
-            </div>
-            {loading ? <p>Cargando productos...</p> : (
-              <ProductTable products={products} onEdit={handleEdit} onDelete={(id) => setDeletingProductId(id)} />
+        <Tabs defaultValue="products">
+          <TabsList className="mb-4">
+            <TabsTrigger value="products">Productos</TabsTrigger>
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="products">
+            {showProductForm ? (
+              <ProductForm product={editingProduct} onFinished={handleProductFormFinished} />
+            ) : (
+              <>
+                <div className="flex justify-end mb-4">
+                  <Button onClick={() => { setEditingProduct(null); setShowProductForm(true); }}>Añadir Joya</Button>
+                </div>
+                {loadingProducts ? <p>Cargando productos...</p> : (
+                  <ProductTable products={products} onEdit={handleEditProduct} onDelete={(id) => setDeletingProductId(id)} />
+                )}
+              </>
             )}
-          </>
-        )}
+          </TabsContent>
+
+          <TabsContent value="orders">
+            {loadingOrders ? <p>Cargando pedidos...</p> : (
+              <OrdersTable orders={orders} onViewDetails={setSelectedOrder} />
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <AlertDialog open={deletingProductId !== null} onOpenChange={() => setDeletingProductId(null)}>
@@ -121,6 +159,8 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <OrderDetailDialog order={selectedOrder} onOpenChange={() => setSelectedOrder(null)} />
     </div>
   );
 };
