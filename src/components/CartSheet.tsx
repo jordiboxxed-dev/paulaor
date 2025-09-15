@@ -5,6 +5,7 @@ import {
   SheetTitle,
   SheetFooter,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
 import { ShoppingCart, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const CartSheet = () => {
   const { cartItems, cartCount, removeFromCart, updateQuantity } = useCart();
@@ -75,7 +77,11 @@ export const CartSheet = () => {
                   <span>Subtotal</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
-                <Button className="w-full">Proceder al Pago</Button>
+                <SheetClose asChild>
+                  <Link to="/checkout" className="w-full">
+                    <Button className="w-full">Proceder al Pago</Button>
+                  </Link>
+                </SheetClose>
               </div>
             </SheetFooter>
           </>
