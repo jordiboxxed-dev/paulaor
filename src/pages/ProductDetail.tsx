@@ -10,6 +10,7 @@ import { useCart } from '@/context/CartContext';
 import { showError } from '@/utils/toast';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SocialShare } from '@/components/SocialShare';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -114,6 +115,7 @@ const ProductDetail = () => {
             >
               {product.is_sold ? 'No disponible' : 'Añadir al carrito'}
             </Button>
+            <SocialShare productName={product.name} productUrl={window.location.href} />
           </div>
         </div>
       </main>
