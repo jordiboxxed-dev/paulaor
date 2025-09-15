@@ -1,8 +1,43 @@
 import { Gem } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CartSheet } from './CartSheet';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import React from 'react';
 
 const Header = () => {
+  const [collections, setCollections] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('collection');
+
+      if (error) {
+        console.error('Error fetching collections:', error);
+        return;
+      }
+
+      if (data) {
+        const uniqueCollections = [
+          ...new Set(data.map(p => p.collection).filter((c): c is string => !!c))
+        ];
+        setCollections(uniqueCollections);
+      }
+    };
+    fetchCollections();
+  }, []);
+
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,6 +47,22 @@ const Header = () => {
             <span className="font-bold text-lg">Joyería Paula</span>
           </Link>
           <nav className="flex items-center gap-4">
+            {collections.length > 0 && (
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger>Colecciones</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[200px] gap-3 p-4 md:w-[250px]">
+                        {collections.map((collection) => (
+                          <ListItem key={collection} to={`/collection/${collection}`} title={collection} />
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+            )}
             <CartSheet />
           </nav>
         </div>
@@ -19,5 +70,32 @@ const Header = () => {
     </header>
   );
 };
+
+const ListItem = React.forwardRef<
+  React.ElementRef<typeof Link>,
+  React.ComponentPropsWithoutRef<typeof Link>
+>(({ className, title, children, to, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <Link
+          to={to}
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </Link>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
 
 export default Header;
