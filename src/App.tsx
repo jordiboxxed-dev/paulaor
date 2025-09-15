@@ -15,6 +15,7 @@ import CollectionPage from "./pages/Collection";
 import SearchPage from "./pages/SearchPage";
 import Profile from "./pages/Profile";
 import { CartProvider } from "@/context/CartContext";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/failure" element={<PaymentFailure />} />

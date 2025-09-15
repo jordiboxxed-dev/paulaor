@@ -20,17 +20,24 @@ const Checkout = () => {
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shippingCost: number = 0;
-  const total = subtotal + shippingCost;
+  const [profileFullName, setProfileFullName] = useState('');
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+    const getUserData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', session.user.id)
+          .single();
+        if (profile?.full_name) {
+          setProfileFullName(profile.full_name);
+        }
+      }
     };
-    getUser();
+    getUserData();
   }, []);
 
   useEffect(() => {
@@ -106,6 +113,10 @@ const Checkout = () => {
     }
   };
 
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shippingCost: number = 0;
+  const total = subtotal + shippingCost;
+
   if (cartCount === 0 && !preferenceId) {
     return (
       <div className="min-h-screen bg-background">
@@ -131,7 +142,7 @@ const Checkout = () => {
               <fieldset disabled={isLoading || !!preferenceId}>
                 <div>
                   <Label htmlFor="name">Nombre Completo</Label>
-                  <Input id="name" name="name" type="text" defaultValue={user?.user_metadata?.full_name || ''} placeholder="Tu nombre" required />
+                  <Input id="name" name="name" type="text" defaultValue={profileFullName} placeholder="Tu nombre" required />
                 </div>
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>

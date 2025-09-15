@@ -9,10 +9,23 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // Redirect to home page after login
-        navigate('/');
+        // A session is active. Check if the user needs to complete their profile.
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!profile?.full_name) {
+          // Redirect to complete profile if name is missing
+          navigate('/complete-profile');
+        } else {
+          // Otherwise, redirect to the main page.
+          // This handles both new logins and existing sessions.
+          navigate('/');
+        }
       }
     });
 
