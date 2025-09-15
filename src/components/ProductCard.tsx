@@ -2,12 +2,15 @@ import { Product } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { addToCart } = useCart();
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="relative p-0">
@@ -28,7 +31,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </CardContent>
       <CardFooter className="flex items-center justify-between p-4 pt-0">
         <p className="text-lg font-bold">${product.price.toFixed(2)}</p>
-        <Button disabled={product.is_sold}>
+        <Button disabled={product.is_sold} onClick={() => addToCart(product)}>
           {product.is_sold ? 'No disponible' : 'Añadir al carrito'}
         </Button>
       </CardFooter>

@@ -1,5 +1,6 @@
-import { Gem, ShoppingCart } from 'lucide-react';
+import { Gem } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { CartSheet } from './CartSheet';
 
 const Header = () => {
   return (
@@ -11,12 +12,7 @@ const Header = () => {
             <span className="font-bold text-lg">Joyería Paula</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <button className="relative rounded-full p-2 hover:bg-accent">
-              <ShoppingCart className="h-6 w-6" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                0
-              </span>
-            </button>
+            <CartSheet />
           </nav>
         </div>
       </div>
