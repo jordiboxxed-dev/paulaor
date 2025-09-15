@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
+import ProductDetail from "./pages/ProductDetail"; // Import the new page
 import { CartProvider } from "@/context/CartContext";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/product/:id" element={<ProductDetail />} /> {/* Add new route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/checkout" element={<Checkout />} />
