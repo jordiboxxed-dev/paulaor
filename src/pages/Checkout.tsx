@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,34 +6,107 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabaseClient';
+import { showError } from '@/utils/toast';
+import { Loader2 } from 'lucide-react';
+
+// This is a global variable from the Mercado Pago SDK script
+declare const MercadoPago: any;
 
 const Checkout = () => {
-  const { cartItems, cartCount, clearCart } = useCart();
+  const { cartItems, cartCount } = useCart();
   const navigate = useNavigate();
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  // For now, shipping is free. This can be updated later.
   const shippingCost: number = 0;
   const total = subtotal + shippingCost;
 
-  if (cartCount === 0) {
+  useEffect(() => {
+    if (preferenceId) {
+      const mp = new MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY, {
+        locale: 'es-AR',
+      });
+      mp.bricks().create("wallet", "wallet_container", {
+        initialization: {
+          preferenceId: preferenceId,
+        },
+        customization: {
+          texts: {
+            valueProp: 'smart_option',
+          },
+        },
+      });
+    }
+  }, [preferenceId]);
+
+  const handleCheckout = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const customerName = formData.get('name') as string;
+    const customerEmail = formData.get('email') as string;
+
+    try {
+      // 1. Create order in our database
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_name: customerName,
+          customer_email: customerEmail,
+          total_price: total,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Create order items
+      const orderItems = cartItems.map(item => ({
+        order_id: orderData.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+      if (itemsError) throw itemsError;
+
+      // 3. Create Mercado Pago preference
+      const { data, error: functionError } = await supabase.functions.invoke('create-payment-preference', {
+        body: {
+          items: cartItems,
+          payer: { name: customerName, email: customerEmail },
+          order_id: orderData.id,
+        },
+      });
+
+      if (functionError) throw functionError;
+      
+      setPreferenceId(data.preferenceId);
+
+    } catch (error: any) {
+      showError('Error al procesar el pago: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (cartCount === 0 && !preferenceId) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8 text-center">
           <h1 className="text-3xl font-bold mb-4">Checkout</h1>
-          <p className="text-muted-foreground mb-6">Tu carrito está vacío. Añade algunos productos antes de proceder al pago.</p>
+          <p className="text-muted-foreground mb-6">Tu carrito está vacío.</p>
           <Button onClick={() => navigate('/')}>Volver a la tienda</Button>
         </main>
       </div>
     );
   }
-
-  const handleCheckout = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Payment integration logic will go here in the next step.
-    console.log('Proceeding to payment...');
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,22 +114,22 @@ const Checkout = () => {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-8 text-center">Finalizar Compra</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Customer Information */}
           <div>
             <h2 className="text-2xl font-semibold mb-4">Información de Contacto</h2>
             <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nombre Completo</Label>
-                <Input id="name" name="name" type="text" placeholder="Tu nombre" required />
-              </div>
-              <div>
-                <Label htmlFor="email">Correo Electrónico</Label>
-                <Input id="email" name="email" type="email" placeholder="tu@email.com" required />
-              </div>
+              <fieldset disabled={isLoading || !!preferenceId}>
+                <div>
+                  <Label htmlFor="name">Nombre Completo</Label>
+                  <Input id="name" name="name" type="text" placeholder="Tu nombre" required />
+                </div>
+                <div>
+                  <Label htmlFor="email">Correo Electrónico</Label>
+                  <Input id="email" name="email" type="email" placeholder="tu@email.com" required />
+                </div>
+              </fieldset>
             </form>
           </div>
 
-          {/* Order Summary */}
           <div className="bg-muted/50 p-6 rounded-lg">
             <h2 className="text-2xl font-semibold mb-4">Resumen del Pedido</h2>
             <div className="space-y-4">
@@ -73,7 +147,7 @@ const Checkout = () => {
               ))}
             </div>
             <Separator className="my-4" />
-            <div className="space-y-2">
+            <div className="space-y-2 font-medium">
               <div className="flex justify-between">
                 <p>Subtotal</p>
                 <p>${subtotal.toFixed(2)}</p>
@@ -88,9 +162,15 @@ const Checkout = () => {
                 <p>${total.toFixed(2)}</p>
               </div>
             </div>
-            <Button type="submit" form="checkout-form" className="w-full mt-6">
-              Proceder al Pago (Próximamente)
-            </Button>
+            
+            {!preferenceId ? (
+              <Button type="submit" form="checkout-form" className="w-full mt-6" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Proceder al Pago
+              </Button>
+            ) : (
+              <div id="wallet_container" className="mt-6"></div>
+            )}
           </div>
         </div>
       </main>
