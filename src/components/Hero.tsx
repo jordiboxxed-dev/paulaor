@@ -38,8 +38,8 @@ const Hero = ({ variant = 'A' }: HeroProps) => {
           </h1>
           <p className="mt-4 text-lg md:text-xl text-carbon/80">{subheadline}</p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-vermillion hover:bg-vermillion/90 text-off-white font-bold text-base">
-              Ver la colección
+            <Button asChild size="lg" className="bg-vermillion hover:bg-vermillion/90 text-off-white font-bold text-base">
+              <a href="#collection">Ver la colección</a>
             </Button>
             <Button size="lg" variant="outline" className="border-carbon text-carbon hover:bg-carbon hover:text-off-white font-bold text-base">
               Los más vendidos
