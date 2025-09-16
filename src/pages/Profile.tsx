@@ -45,7 +45,7 @@ const Profile = () => {
       // Fetch profile and orders in parallel
       const [profileRes, ordersRes] = await Promise.all([
         supabase.from('user_profiles').select('full_name').eq('id', session.user.id).single(),
-        supabase.from('orders').select('*').order('created_at', { ascending: false })
+        supabase.from('orders').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
       ]);
 
       if (profileRes.error) {
@@ -147,15 +147,22 @@ const Profile = () => {
                 {orders.map(order => (
                   <Card key={order.id}>
                     <CardHeader>
-                      <CardTitle>Pedido del {format(new Date(order.created_at), 'dd/MM/yyyy')}</CardTitle>
-                      <CardDescription>ID del Pedido: {order.id}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold">${order.total_price.toFixed(2)}</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle>Pedido del {format(new Date(order.created_at), 'dd/MM/yyyy')}</CardTitle>
+                          <CardDescription>ID: {order.id}</CardDescription>
+                        </div>
+                        <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className="capitalize">{order.status}</Badge>
                       </div>
-                      <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>{order.status}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="font-semibold text-lg">${order.total_price.toFixed(2)}</p>
                     </CardContent>
+                    <CardFooter>
+                      <Button asChild variant="outline" className="w-full sm:w-auto">
+                        <Link to={`/profile/orders/${order.id}`}>Ver Detalles</Link>
+                      </Button>
+                    </CardFooter>
                   </Card>
                 ))}
               </div>
