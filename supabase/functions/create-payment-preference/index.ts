@@ -1,4 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-nocheck
+
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { MercadoPagoConfig, Preference } from "npm:mercadopago@2.9.0";
 
 const corsHeaders = {
@@ -14,7 +16,10 @@ serve(async (req) => {
   try {
     const { items, payer, order_id } = await req.json();
     const accessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
-    const siteUrl = Deno.env.get("SITE_URL") || "http://localhost:8080";
+    
+    // Dynamically get the site URL from the request origin
+    const origin = req.headers.get("origin");
+    const siteUrl = origin || Deno.env.get("SITE_URL") || "http://localhost:8080";
 
     if (!accessToken) {
       throw new Error("Mercado Pago access token is not configured.");
@@ -30,7 +35,7 @@ serve(async (req) => {
           title: item.name,
           quantity: item.quantity,
           unit_price: item.price,
-          currency_id: "ARS", // Assuming Argentinian Pesos
+          currency_id: "ARS",
         })),
         payer: {
           name: payer.name,
