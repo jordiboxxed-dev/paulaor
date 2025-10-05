@@ -19,10 +19,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User } from '@supabase/supabase-js';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
@@ -63,11 +65,27 @@ const Admin = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login');
-      } else {
-        setUser(session.user);
-        fetchProducts();
-        fetchOrders();
+        return;
       }
+      
+      // Check if the user is an admin
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error || !profile || profile.role !== 'admin') {
+        showError('No tienes permiso para acceder a esta página.');
+        navigate('/');
+        return;
+      }
+
+      // If admin, proceed
+      setUser(session.user);
+      fetchProducts();
+      fetchOrders();
+      setIsLoading(false);
     };
     checkUser();
   }, [navigate, fetchProducts, fetchOrders]);
@@ -102,6 +120,10 @@ const Admin = () => {
     fetchProducts();
     showSuccess(`Producto ${editingProduct ? 'actualizado' : 'añadido'} con éxito.`);
   };
+
+  if (isLoading) {
+    return <div className="container mx-auto p-8">Cargando...</div>;
+  }
 
   if (!user) return null;
 
