@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { MercadoPagoConfig, Preference } from "npm:mercadopago@2.0.0-beta.0";
+import { MercadoPagoConfig, Preference } from "npm:mercadopago@2.9.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
