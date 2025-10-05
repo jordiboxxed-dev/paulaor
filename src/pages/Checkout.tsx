@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import { Loader2 } from 'lucide-react';
 import { User } from '@supabase/supabase-js';

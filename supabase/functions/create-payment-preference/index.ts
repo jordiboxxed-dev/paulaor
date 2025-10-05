@@ -43,7 +43,7 @@ serve(async (req) => {
         },
         auto_return: "approved",
         external_reference: order_id,
-        notification_url: `https://hyslwljeddgnqrjoxeql.supabase.co/functions/v1/handle-payment-notification?source_news=webhooks`,
+        notification_url: `https://rnehpkppkmgpngwlwdii.supabase.co/functions/v1/handle-payment-notification?source_news=webhooks`,
       },
     });
 

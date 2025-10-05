@@ -9,7 +9,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -45,9 +45,9 @@ const Header = () => {
       }
 
       if (data) {
-        const uniqueCollections = [
-          ...new Set(data.map(p => p.collection).filter((c): c is string => !!c))
-        ];
+        const collectionsList: any[] = data.map(p => p.collection);
+        const stringCollections: string[] = collectionsList.filter(c => typeof c === 'string' && c.length > 0);
+        const uniqueCollections = [...new Set(stringCollections)];
         setCollections(uniqueCollections);
       }
     };

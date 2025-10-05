@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types';
 import Header from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
